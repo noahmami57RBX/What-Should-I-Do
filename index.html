@@ -261,6 +261,23 @@
     ]
   };
 
+  // Fill-in-the-blank suggestions for any custom thing the user types.
+  // "{X}" is replaced with whatever they typed (e.g. "dishes", "learn guitar").
+  var TEMPLATE_BANK = [
+    { s: "Set a 15-minute timer and give {X} a head start today.", c: "A countdown AND a soundtrack. {X} is basically a movie now." },
+    { s: "Write down the very first step of {X} and do just that step.", c: "Step one: located. You brave pioneer." },
+    { s: "Before starting, look up one beginner tip about {X}.", c: "Borrowed wisdom — that's how all legends level up." },
+    { s: "Gather everything you need for {X} into one spot.", c: "Supplies: assembled. You're basically a quest NPC now." },
+    { s: "Pick a time and place for {X} and add it to your calendar.", c: "An appointment with destiny. Please be on time." },
+    { s: "Search online or ask a friend for the #1 beginner mistake with {X}.", c: "Dodging classic mistakes? Very wise. Very mysterious." },
+    { s: "Do the easiest part of {X} first to build momentum.", c: "Momentum is a snowball. You just gave it a push." },
+    { s: "Tidy up the space where {X} will happen — room to work works wonders.", c: "A tidy launch pad. Astronauts have them. So now do you." },
+    { s: "Set a small reward for yourself for when {X} is done.", c: "Negotiating with yourself in good faith. A truly classy move." },
+    { s: "Tell someone that {X} is happening this week — instant fan club.", c: "Announced! Cheering optional but extremely likely." },
+    { s: "Break {X} into three mini-steps on paper and cross one off.", c: "Crossing things off lists: an underrated luxury." },
+    { s: "Spend 10 minutes on {X} today — you're allowed to stop after.", c: "Ten minutes counts. That's just math." }
+  ];
+
   // Extra suggestions for custom categories the user types.
   var CUSTOM_BANK = [
     { s: "Do it for just 5 minutes and see if you want to keep going.", c: "Starting is the loudest part. After that it whispers." },
@@ -321,8 +338,34 @@
     return a;
   }
 
+  // Maps common words the user types to the closest built-in category,
+  // so custom entries like "laundry" or "study" mix in relevant ideas.
+  var SYNONYMS = {
+    "homework": ["homework", "study", "school", "assignment", "essay", "exam", "test", "revision", "project"],
+    "free time": ["free time", "fun", "relax", "hobby", "friend", "weekend"],
+    "chores": ["chores", "clean", "laundry", "dishes", "tidy", "trash", "garbage", "vacuum", "room", "house"],
+    "bored": ["bored", "nothing"],
+    "need ideas": ["idea", "inspiration", "decide", "plan", "goal"]
+  };
+
+  // Builds an idea bank for any category: a filled-in template bank for the
+  // exact thing the user typed, plus relevant built-in ideas when the words
+  // match a known category (e.g. "laundry" pulls in chores ideas).
+  function bankFor(category) {
+    if (BANK[category]) return BANK[category];
+    var generated = TEMPLATE_BANK.map(function (t) {
+      return { s: t.s.split("{X}").join(category), c: t.c.split("{X}").join(category) };
+    });
+    var matched = [];
+    Object.keys(SYNONYMS).forEach(function (key) {
+      var hit = SYNONYMS[key].some(function (w) { return category.indexOf(w) !== -1; });
+      if (hit) matched = matched.concat(BANK[key]);
+    });
+    return generated.concat(matched.length ? matched : CUSTOM_BANK);
+  }
+
   function pickIdeas(category) {
-    var bank = BANK[category] || CUSTOM_BANK;
+    var bank = bankFor(category);
     var picks = shuffle(bank).slice(0, 5);
     var tryingSaved = loadTrying();
     return picks.map(function (p) {
