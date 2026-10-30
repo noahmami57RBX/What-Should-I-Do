@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>What Should I Do?</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --card: #ffffff;
+    --ink: #2b2a28;
+    --muted: #6f6a63;
+    --accent: #2f7d5b;
+    --accent-dark: #256547;
+    --gold: #f0b429;
+    --line: #e4e0d8;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px calc(24px + env(safe-area-inset-bottom)); }
+  header { text-align: center; padding: 12px 0 20px; }
+  header h1 { font-size: 28px; letter-spacing: -0.5px; }
+  header p { color: var(--muted); margin-top: 6px; font-size: 15px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .chip {
+    border: 2px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease, border-color 0.1s ease;
+  }
+  .chip:active { transform: scale(0.96); }
+  .chip.active { border-color: var(--accent); color: var(--accent-dark); background: #e9f4ee; }
+
+  .custom-row { display: flex; gap: 8px; margin-top: 14px; }
+  .custom-row input {
+    flex: 1;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 16px;
+    background: var(--card);
+    color: var(--ink);
+  }
+  .custom-row input:focus { outline: none; border-color: var(--accent); }
+  .go-btn {
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .go-btn:active { background: var(--accent-dark); }
+
+  .ideas { margin-top: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .idea {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .idea.trying { border-color: var(--gold); background: #fffaf0; }
+  .idea h3 { font-size: 17px; line-height: 1.35; }
+  .idea .comment { margin-top: 8px; font-size: 14px; color: var(--muted); font-style: italic; line-height: 1.4; }
+  .idea .actions { display: flex; gap: 8px; margin-top: 12px; }
+  .idea .actions button {
+    flex: 1;
+    border-radius: 10px;
+    padding: 11px 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+  }
+  .idea .actions .try { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .idea.trying .actions .try { background: var(--gold); border-color: var(--gold); }
+  .idea .actions .fav.saved { background: #fdf1d6; border-color: var(--gold); color: #8a6100; }
+
+  .next-wrap { margin-top: 18px; }
+  .next-btn {
+    width: 100%;
+    border: none;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .next-btn:active { opacity: 0.85; }
+
+  .fav-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 32px; padding-bottom: 8px; border-bottom: 2px solid var(--line);
+  }
+  .fav-header h2 { font-size: 18px; }
+  .fav-header button {
+    border: none; background: none; color: var(--muted);
+    font-size: 14px; cursor: pointer; text-decoration: underline;
+  }
+  .fav-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .fav-item {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .fav-item p { flex: 1; font-size: 15px; line-height: 1.35; }
+  .fav-item button {
+    border: none; background: none; font-size: 20px; cursor: pointer; color: var(--muted);
+    padding: 4px 6px;
+  }
+  .empty { color: var(--muted); font-size: 14px; text-align: center; padding: 12px 0; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 999px;
+    font-size: 15px; font-weight: 600; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease; max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>What Should I Do?</h1>
+    <p>Pick a mood, get 5 real ideas with questionable encouragement.</p>
+  </header>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="custom-row">
+    <input id="customInput" type="text" placeholder="Or type your own thing… (dishes, laundry)"
+           autocomplete="off" enterkeyhint="go">
+    <button class="go-btn" id="goBtn">Go</button>
+  </div>
+
+  <div class="ideas" id="ideas"></div>
+  <div class="next-wrap"><button class="next-btn" id="nextBtn">Next ideas ⟳</button></div>
+
+  <div class="fav-header">
+    <h2>⭐ Saved favorites</h2>
+    <button id="clearFavs">Clear all</button>
+  </div>
+  <div class="fav-list" id="favList"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Category picker chips.
+  var CATEGORIES = ["homework", "free time", "chores", "bored", "need ideas"];
+
+  // Practical suggestions + a playful comment for each. {s: suggestion, c: comment}
+  var BANK = {
+    "homework": [
+      { s: "Start with the easiest problem first to build momentum.", c: "Your future self is already prepping a high-five." },
+      { s: "Set a timer for 25 minutes and do homework until it rings.", c: "A heroic potato could focus for 25 minutes. You have a huge advantage: not being a potato." },
+      { s: "Write down every assignment due this week in one list.", c: "Making lists is basically homework with extra legitimacy. Well done." },
+      { s: "Do the hardest task second, while your brain is still warmed up.", c: "That task thought it was scary. It has no idea who it's dealing with." },
+      { s: "Read your notes out loud once to lock them in.", c: "Yes, out loud. Your cat is extremely impressed, even if it looks asleep." },
+      { s: "Split a big project into three tiny steps and do step one.", c: "Tiny steps count double. That's science. Probably." },
+      { s: "Put your phone in another room for one study session.", c: "The phone will be fine. It has friends in the other room." },
+      { s: "Check your answers against the examples one more time before finishing.", c: "Detective mode: engaged. The mystery of question 4 fears you now." },
+      { s: "Reward yourself with a snack after finishing one assignment.", c: "Snack-based economics. A flawless system that has never failed anyone." },
+      { s: "Email or message a classmate about one thing you're stuck on.", c: "Asking for help is the fanciest kind of intelligence. Wear a monocle while doing it." },
+      { s: "Make a checklist and cross each item off with a flourish.", c: "Crossing things off a list is one of life's underrated luxuries." },
+      { s: "Rewrite your notes in your own words, as if teaching a friend.", c: "Congratulations, you're now the world's most enthusiastic substitute teacher." },
+      { s: "Find a quiet spot and turn on some background study sounds.", c: "Rainy library sounds make you 12% smarter. Almost certainly. Don't fact-check that." },
+      { s: "Start an assignment the moment it's assigned, even for 5 minutes.", c: "Future you just did a backflip. Very graceful. Very deserved." },
+      { s: "Circle the questions that confuse you and ask your teacher tomorrow.", c: "Question-asking: the superpower disguised as a normal question. Pow." }
+    ],
+    "free time": [
+      { s: "Text a friend you haven't talked to in a while.", c: "You are about to be someone's favorite notification of the day." },
+      { s: "Make a 10-song playlist for a specific mood.", c: "You are basically a DJ now. Updating your resume is optional." },
+      { s: "Read a few pages of a book or long article you've saved.", c: "Those saved links finally get their day in the sun. No link left behind." },
+      { s: "Try drawing something you can see from where you're sitting.", c: "Nobody needs to know the cat looks like a loaf of bread. That's modern art." },
+      { s: "Learn one magic trick and perform it for someone.", c: "Your aunt will never recover from the card trick. Prepare for fame." },
+      { s: "Do 10 minutes of stretching or easy yoga.", c: "Your spine has written you a grateful letter. It's very touching." },
+      { s: "Cook or bake one simple thing you've never made before.", c: "Even if it goes sideways, that's a legendary origin story." },
+      { s: "Take a slow walk with music or a podcast and no destination.", c: "You are a mysterious main character going somewhere, technically nowhere." },
+      { s: "Organize your photos and pick your favorite 10 from this year.", c: "You are the official curator of the museum of you. Excellent taste, clearly." },
+      { s: "Write a short note thanking someone who helped you recently.", c: "You just became the plot twist in someone's ordinary Tuesday." },
+      { s: "Learn to juggle with two socks (or three, if you're brave).", c: "In three days you'll be doing this blindfolded. Probably. Nice socks." },
+      { s: "Build the tallest tower you can from stuff on your desk.", c: "Architecture school would like a word. Bring the tower." },
+      { s: "Write a letter to yourself to open in one month.", c: "Time travel achieved, zero fuel required. Thank you, past genius." },
+      { s: "Have a picnic lunch somewhere unusual — even indoors on the floor.", c: "New venue, same sandwich, 100% more adventure." },
+      { s: "Learn the names of three plants growing near your home.", c: "Congratulations, neighborhood botanist. The trees are honored." }
+    ],
+    "chores": [
+      { s: "Set a 10-minute timer and clean one small area as fast as you can.", c: "Speed-cleaning is a sport now. You're favored to win gold." },
+      { s: "Do one load of laundry from start to finish.", c: "The socks thank you for your service. Some will still vanish. They always do." },
+      { s: "Clear everything off one table or countertop completely.", c: "A clear counter is basically a fresh start with a surface." },
+      { s: "Wash the dishes sitting in the sink right now.", c: "Every plate conquered is a tiny victory parade. Confetti optional." },
+      { s: "Take out the trash and the recycling on your way past.", c: "You, hero of the hallway, protector of freshness. The trash can salutes you." },
+      { s: "Wipe down your phone screen and the doorknobs you touch most.", c: "Germ-fighting secret agent. Your mission, should you choose it, takes 3 minutes." },
+      { s: "Make your bed and open the curtains for daylight.", c: "Instant room upgrade, zero dollars spent. Interior designers hate this trick." },
+      { s: "Sort the pile of papers or bags into keep, toss and donate.", c: "You are the boss of that pile. It has been waiting for leadership." },
+      { s: "Vacuum or sweep just one room, not the whole house.", c: "One room at a time. Even superheroes take it floor by floor." },
+      { s: "Put away the five items that are furthest from where they belong.", c: "Those wandering objects will finally return home. Beautiful reunion incoming." },
+      { s: "Wash one window or mirror until it's sparkling.", c: "So shiny you'll catch yourself admiring yourself in it. Standard." },
+      { s: "Change your sheets and enjoy the world's softest bed tonight.", c: "Fresh sheets are a hotel experience you gift to yourself. Fancy." },
+      { s: "Organize one drawer and give everything a proper home.", c: "That drawer sparks joy now. A proud single tear was shed." },
+      { s: "Water the plants (or promise one plant you'll do better).", c: "The plant accepts your apology and offers a new leaf. Literally." },
+      { s: "Put dirty clothes straight in the basket for one whole day.", c: "A perfect record. The basket is deeply moved by your loyalty." }
+    ],
+    "bored": [
+      { s: "Walk outside for 5 minutes and count how many different birds you see.", c: "Science experiment unlocked. Lab coat optional, curiosity mandatory." },
+      { s: "Learn three words in a language you don't speak.", c: "You are now internationally sophisticated. Three words' worth. That counts." },
+      { s: "Find a recipe with ingredients you already have and make it.", c: "Chef mode: engaged. The kitchen has never known such excitement." },
+      { s: "Do a puzzle: crosswords, sudoku, or a word game on paper.", c: "Your brain stretches like a cat in the sun. Delighted and dramatic." },
+      { s: "Give five things in your room a cleaner or better spot.", c: "Tiny home makeover show, one-object edition. Ratings through the roof." },
+      { s: "Write a silly short story that's exactly six sentences long.", c: "Six sentences, infinite glory. Hemingway started somewhere too." },
+      { s: "Learn to whistle, snap, or fold one new origami shape.", c: "A completely useless, completely wonderful skill. The best kind." },
+      { s: "Call or voice-message a friend just to say hi.", c: "You, yes you, are about to upgrade someone's whole afternoon." },
+      { s: "Make up a 20-question trivia quiz and test someone.", c: "You are now a game show host. Please be kind to the contestants." },
+      { s: "Have a 3-minute dance party to one extremely good song.", c: "The walls have seen things. They respect your commitment." },
+      { s: "Build a blanket fort and do one normal activity inside it.", c: "Reading inside a fort is 300% more epic. Verified by fort scientists." },
+      { s: "Take 5 photos of something tiny from super close up.", c: "Congratulations, you're now a nature documentarian. The bugs are thrilled." },
+      { s: "Pick a random object and invent its secret backstory.", c: "That spoon has SEEN THINGS, and now everyone will know." },
+      { s: "Teach yourself to draw a simple cartoon animal in 10 minutes.", c: "Exhibit A: your duck. Exhibit B: still a duck, but emotional now." },
+      { s: "Make up a secret handshake with someone you like.", c: "Cryptographers gave up years ago. Only you two know." }
+    ],
+    "need ideas": [
+      { s: "Write down three things you want to do this month, then plan the first one.", c: "You, with a plan. Extremely powerful. Slightly mysterious." },
+      { s: "Message someone to make plans for this weekend.", c: "One message stands between you and an actual adventure." },
+      { s: "Try one new route on a walk you take often.", c: "Cartographers call this 'exploration'. Your neighbor calls it 'walking'. Both are right." },
+      { s: "Set one tiny goal for today and finish it before dinner.", c: "Tiny goals are the appetizers of greatness. Order the whole meal later." },
+      { s: "Back up your photos and delete things you don't need.", c: "Digital spring cleaning. Your storage is about to breathe a huge sigh of relief." },
+      { s: "Try a 5-minute beginner tutorial for a skill you've been curious about.", c: "Five minutes of curiosity. That's how every expert started, no exceptions." },
+      { s: "Write tomorrow's top three tasks before you go to bed.", c: "Future you just did a happy little backflip. You're welcome, future you." },
+      { s: "Drink a glass of water and step outside for some air.", c: "The two most underrated powers in the universe. Use them freely." },
+      { s: "Start a tiny habit tracker for one thing you want to do daily.", c: "Streaks are extremely motivating. Do not break the streak. The streak believes in you." },
+      { s: "Do one thing you've been putting off for under five minutes.", c: "It has been lurking. It thought it won. Show it who's boss." },
+      { s: "Pick one book you've wanted to read and start chapter one tonight.", c: "Every great story starts with page one. This is that, but with you in it." },
+      { s: "Choose a skill to practice 10 minutes a day this week.", c: "Seven tiny sessions later, boom: new talent unlocked." },
+      { s: "Plan one simple weekend adventure, even a tiny one.", c: "Adventure doesn't need a mountain. A bakery counts. An odd rock counts." },
+      { s: "Write a list of 20 things you'd love to try someday.", c: "Scientists confirm dream lists are 90% imagination, 10% destiny." },
+      { s: "Pick a friend to learn something new together with.", c: "Two brains, one quest. This is how legends (and group chats) begin." }
+    ]
+  };
+
+  // Extra suggestions for custom categories the user types.
+  var CUSTOM_BANK = [
+    { s: "Do it for just 5 minutes and see if you want to keep going.", c: "Starting is the loudest part. After that it whispers." },
+    { s: "Break it into three smaller steps and do the first one now.", c: "Step one of three. You are officially in motion, officially impressive." },
+    { s: "Set a timer, put your phone away, and give it your full focus.", c: "The phone will cope. It's very resilient. You've got this." },
+    { s: "Tell someone your plan so they can cheer you on.", c: "Accountability plus a fan club. A championship combination." },
+    { s: "Do the simplest version first, then improve it later.", c: "Done-ish is the proud cousin of perfect. Everyone starts there." },
+    { s: "Set up your space so the next step is easier.", c: "A tidy launch pad. Astronauts have them. So now do you." },
+    { s: "Give yourself a small reward when you finish.", c: "Negotiating with yourself in good faith. A truly classy move." },
+    { s: "Spend 2 minutes picturing how good it will feel when it's done.", c: "Visualization: cheap, fast, and suspiciously effective." }
+  ];
+
+  var state = {
+    category: null,   // currently selected category (string, lowercased)
+    ideas: []         // current 5 ideas: {s, c, trying}
+  };
+
+  var FAV_KEY = "wsid_favorites_v1";
+  var TRY_KEY = "wsid_trying_v1";
+
+  function loadFavs() {
+    try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function saveFavs(favs) {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); } catch (e) {}
+  }
+
+  function loadTrying() {
+    try { return JSON.parse(localStorage.getItem(TRY_KEY)) || []; }
+    catch (e) { return []; }
+  }
+  function saveTrying() {
+    var trying = state.ideas.filter(function (i) { return i.trying; }).map(function (i) {
+      return state.category + "||" + i.s;
+    });
+    try { localStorage.setItem(TRY_KEY, JSON.stringify(trying)); } catch (e) {}
+  }
+
+  var ideaList = document.getElementById("ideas");
+  var favListEl = document.getElementById("favList");
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 1800);
+  }
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function pickIdeas(category) {
+    var bank = BANK[category] || CUSTOM_BANK;
+    var picks = shuffle(bank).slice(0, 5);
+    var tryingSaved = loadTrying();
+    return picks.map(function (p) {
+      return { s: p.s, c: p.c, trying: tryingSaved.indexOf(category + "||" + p.s) !== -1 };
+    });
+  }
+
+  function renderChips() {
+    var wrap = document.getElementById("chips");
+    wrap.innerHTML = "";
+    CATEGORIES.forEach(function (cat) {
+      var b = document.createElement("button");
+      b.className = "chip" + (state.category === cat ? " active" : "");
+      b.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+      b.addEventListener("click", function () { selectCategory(cat); });
+      wrap.appendChild(b);
+    });
+  }
+
+  function renderIdeas() {
+    ideaList.innerHTML = "";
+    state.ideas.forEach(function (idea, idx) {
+      var card = document.createElement("div");
+      card.className = "idea" + (idea.trying ? " trying" : "");
+
+      var h = document.createElement("h3");
+      h.textContent = idea.s;
+
+      var c = document.createElement("p");
+      c.className = "comment";
+      c.textContent = "“" + idea.c + "”";
+
+      var actions = document.createElement("div");
+      actions.className = "actions";
+
+      var tryBtn = document.createElement("button");
+      tryBtn.className = "try";
+      tryBtn.textContent = idea.trying ? "✓ Trying this" : "Try this one";
+      tryBtn.addEventListener("click", function () {
+        idea.trying = !idea.trying;
+        saveTrying();
+        renderIdeas();
+        if (idea.trying) showToast("Great choice. Go get it! 💪");
+      });
+
+      var favBtn = document.createElement("button");
+      favBtn.className = "fav";
+      var favs = loadFavs();
+      var isFav = favs.some(function (f) { return f.s === idea.s; });
+      if (isFav) favBtn.classList.add("saved");
+      favBtn.textContent = isFav ? "⭐ Saved" : "☆ Save";
+      favBtn.addEventListener("click", function () {
+        var list = loadFavs();
+        if (list.some(function (f) { return f.s === idea.s; })) {
+          list = list.filter(function (f) { return f.s !== idea.s; });
+          showToast("Removed from favorites.");
+        } else {
+          list.unshift({ s: idea.s, c: idea.c, cat: state.category });
+          if (list.length > 30) list = list.slice(0, 30);
+          showToast("Saved to favorites! ⭐");
+        }
+        saveFavs(list);
+        renderIdeas();
+        renderFavs();
+      });
+
+      actions.appendChild(tryBtn);
+      actions.appendChild(favBtn);
+      card.appendChild(h);
+      card.appendChild(c);
+      card.appendChild(actions);
+      ideaList.appendChild(card);
+    });
+  }
+
+  function renderFavs() {
+    var favs = loadFavs();
+    favListEl.innerHTML = "";
+    if (!favs.length) {
+      var empty = document.createElement("p");
+      empty.className = "empty";
+      empty.textContent = "Nothing saved yet. Tap ☆ Save on an idea you like.";
+      favListEl.appendChild(empty);
+      return;
+    }
+    favs.forEach(function (f) {
+      var item = document.createElement("div");
+      item.className = "fav-item";
+      var p = document.createElement("p");
+      p.textContent = (f.cat ? "[" + f.cat + "] " : "") + f.s;
+      var del = document.createElement("button");
+      del.textContent = "✕";
+      del.setAttribute("aria-label", "Remove favorite");
+      del.addEventListener("click", function () {
+        saveFavs(loadFavs().filter(function (x) { return x.s !== f.s; }));
+        renderFavs();
+        renderIdeas();
+      });
+      item.appendChild(p);
+      item.appendChild(del);
+      favListEl.appendChild(item);
+    });
+  }
+
+  function selectCategory(cat) {
+    state.category = cat;
+    state.ideas = pickIdeas(cat);
+    try { localStorage.setItem(TRY_KEY, JSON.stringify([])); } catch (e) {}
+    renderChips();
+    renderIdeas();
+    var ideasSection = document.querySelector(".next-wrap");
+    if (ideasSection) ideasSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  document.getElementById("nextBtn").addEventListener("click", function () {
+    if (!state.category) {
+      showToast("Pick a category first!");
+      return;
+    }
+    state.ideas = pickIdeas(state.category);
+    try { localStorage.setItem(TRY_KEY, JSON.stringify([])); } catch (e) {}
+    renderIdeas();
+  });
+
+  function useCustom() {
+    var input = document.getElementById("customInput");
+    var val = input.value.trim().toLowerCase();
+    if (!val) { showToast("Type something first!"); return; }
+    selectCategory(val);
+    input.value = "";
+  }
+  document.getElementById("goBtn").addEventListener("click", useCustom);
+  document.getElementById("customInput").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") useCustom();
+  });
+
+  document.getElementById("clearFavs").addEventListener("click", function () {
+    if (!loadFavs().length) return;
+    saveFavs([]);
+    renderFavs();
+    renderIdeas();
+    showToast("Favorites cleared.");
+  });
+
+  renderChips();
+  renderFavs();
+})();
+</script>
+</body>
+</html>
