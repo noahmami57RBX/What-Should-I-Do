@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>What Should I Do?</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <style>
   :root {
     --bg: #f6f4ef;
@@ -28,6 +30,10 @@
   header { text-align: center; padding: 12px 0 20px; }
   header h1 { font-size: 28px; letter-spacing: -0.5px; }
   header p { color: var(--muted); margin-top: 6px; font-size: 15px; }
+  .logo {
+    display: block; width: 76px; height: 76px; margin: 0 auto 10px;
+    border-radius: 19px; box-shadow: 0 3px 10px rgba(31, 31, 29, 0.18);
+  }
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
   .chip {
@@ -141,6 +147,7 @@
 <body>
 <div class="wrap">
   <header>
+    <img class="logo" src="icon.svg" alt="What Should I Do? app icon">
     <h1>What Should I Do?</h1>
     <p>Pick a mood, get 5 real ideas with questionable encouragement.</p>
   </header>
